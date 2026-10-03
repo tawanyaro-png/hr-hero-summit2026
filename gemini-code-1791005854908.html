@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Hero Summit 2026 - PEAK Lead Capture & Lucky Draw</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Canvas Confetti for Lucky Draw effect -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- SheetJS Library for Genuine Excel (.xlsx) Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Google Fonts: Noto Sans Thai & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        peak: {
+                            blue: '#0B2545',
+                            navy: '#134074',
+                            sky: '#2B88D8',
+                            orange: '#FF6B35',
+                            yellow: '#FFC857',
+                            bg: '#F8FAFC'
+                        }
+                    },
+                    fontFamily: {
+                        noto: ['"Noto Sans Thai"', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans Thai', 'Inter', sans-serif;
+            background-color: #F8FAFC;
+            color: #1E293B;
+        }
+        .pdpa-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .pdpa-scrollbar::-webkit-scrollbar-track {
+            background: #F1F5F9;
+            border-radius: 8px;
+        }
+        .pdpa-scrollbar::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 8px;
+        }
+        #wheelCanvas {
+            transition: transform 4s cubic-bezier(0.15, 0.99, 0.18, 0.99);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(12px);
+            border: 1px solid #E2E8F0;
+        }
+        .option-card.active {
+            border-color: #2B88D8;
+            background-color: #F0F9FF;
+            box-shadow: 0 4px 12px rgba(43, 136, 216, 0.15);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between font-noto">
+
+    <!-- Header Navigation Bar (PEAK CI Style) -->
+    <header class="bg-white text-slate-800 shadow-sm border-b border-slate-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="resetToCustomerView()">
+                <!-- PEAK Logo Image -->
+                <div class="h-9 flex items-center">
+                    <img src="https://lh3.googleusercontent.com/d/1VN5Yy7yM-VpVQ2TThXACYVHv55ucDCkc" alt="PEAK Logo" class="h-8 object-contain">
+                </div>
+                <div class="border-l border-slate-200 pl-3">
+                    <span class="font-bold text-sm sm:text-base tracking-tight text-peak-blue block leading-tight">HR HERO SUMMIT 2026</span>
+                    <span class="text-[10px] text-peak-sky font-semibold">PEAK Booth</span>
+                </div>
+            </div>
+
+            <!-- Admin Nav Buttons -->
+            <div class="flex items-center space-x-2">
+                <nav id="adminNav" class="hidden flex items-center space-x-1 sm:space-x-2">
+                    <button id="nav-register" onclick="switchTab('register')" 
+                        class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center space-x-1 bg-peak-blue text-white">
+                        <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+                        <span>ลงทะเบียน</span>
+                    </button>
+                    <button id="nav-luckydraw" onclick="switchTab('luckydraw')" 
+                        class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center space-x-1 text-slate-600 hover:bg-slate-100">
+                        <i data-lucide="gift" class="w-3.5 h-3.5 text-peak-orange"></i>
+                        <span>สุ่มรางวัล</span>
+                    </button>
+                    <button id="nav-admin" onclick="switchTab('admin')" 
+                        class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center space-x-1 text-slate-600 hover:bg-slate-100">
+                        <i data-lucide="database" class="w-3.5 h-3.5"></i>
+                        <span>จัดการ Log</span>
+                    </button>
+                </nav>
+
+                <button id="adminLoginBtn" onclick="promptAdminLogin()" 
+                    class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors flex items-center gap-1 font-medium">
+                    <i data-lucide="lock" class="w-3 h-3"></i>
+                    <span>ทีมงาน PEAK</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- ================= PAGE 1: CUSTOMER REGISTRATION FORM ================= -->
+        <section id="page-register" class="transition-all duration-300">
+            <div class="max-w-2xl mx-auto">
+                
+                <!-- PEAK Hero Banner Card -->
+                <div class="bg-gradient-to-br from-peak-blue via-peak-navy to-peak-sky text-white rounded-3xl p-6 sm:p-8 shadow-xl mb-6 relative overflow-hidden">
+                    <div class="relative z-10">
+                        <div class="inline-flex items-center gap-1.5 bg-peak-orange text-white text-[11px] px-3 py-0.5 rounded-full font-bold mb-3 uppercase shadow-sm">
+                            <i data-lucide="sparkles" class="w-3 h-3"></i> Exclusive Activity
+                        </div>
+                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
+                            ลงทะเบียนลุ้นรับบัตร Starbucks! ☕
+                        </h1>
+                        <p class="text-white/90 text-sm font-light leading-relaxed">
+                            ต้อนรับผู้เข้าชมงาน <strong class="text-peak-yellow">HR Hero Summit</strong> เพียงกรอกข้อมูลเพื่อรับข่าวสารและสิทธิพิเศษจาก PEAK ลุ้นเป็นผู้โชคดีรับบัตร Starbucks (จำนวน 3 รางวัล)
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Registration Form Card -->
+                <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-md">
+                    <form id="leadForm" onsubmit="handleRegistration(event)" class="space-y-6">
+                        
+                        <!-- First Name & Last Name -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="firstName" class="block text-sm font-semibold text-slate-700 mb-1">
+                                    First Name (ชื่อ) <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="firstName" required placeholder="สมชาย"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-peak-sky outline-none text-slate-800 text-sm">
+                            </div>
+                            <div>
+                                <label for="lastName" class="block text-sm font-semibold text-slate-700 mb-1">
+                                    Last Name (นามสกุล) <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="lastName" required placeholder="ใจดี"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-peak-sky outline-none text-slate-800 text-sm">
+                            </div>
+                        </div>
+
+                        <!-- Email Address -->
+                        <div>
+                            <label for="email" class="block text-sm font-semibold text-slate-700 mb-1">
+                                Email Address (อีเมล) <span class="text-red-500">*</span>
+                            </label>
+                            <input type="email" id="email" required placeholder="somchai@company.com"
+                                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-peak-sky outline-none text-slate-800 text-sm">
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div>
+                            <label for="phone" class="block text-sm font-semibold text-slate-700 mb-1">
+                                Phone No. / Mobile Phone No. (หมายเลขโทรศัพท์) <span class="text-red-500">*</span>
+                            </label>
+                            <input type="tel" id="phone" required pattern="[0-9]{9,10}" placeholder="0812345678"
+                                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-peak-sky outline-none text-slate-800 text-sm">
+                        </div>
+
+                        <!-- Position Options -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                ตำแหน่งงาน (Position) <span class="text-red-500">*</span>
+                            </label>
+                            <input type="hidden" id="selectedPosition" required>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="positionGroup">
+                                <button type="button" onclick="selectPosition('HR Director / HR Manager', this)" 
+                                    class="option-card border border-slate-200 bg-white p-3 rounded-xl text-left hover:border-peak-sky transition-all flex items-center space-x-3 cursor-pointer">
+                                    <div class="w-8 h-8 rounded-lg bg-blue-50 text-peak-navy flex items-center justify-center shrink-0">
+                                        <i data-lucide="award" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="text-xs font-medium text-slate-700">HR Director / HR Manager</span>
+                                </button>
+
+                                <button type="button" onclick="selectPosition('HR Specialist / Executive', this)" 
+                                    class="option-card border border-slate-200 bg-white p-3 rounded-xl text-left hover:border-peak-sky transition-all flex items-center space-x-3 cursor-pointer">
+                                    <div class="w-8 h-8 rounded-lg bg-blue-50 text-peak-navy flex items-center justify-center shrink-0">
+                                        <i data-lucide="users" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="text-xs font-medium text-slate-700">HR Specialist / Officer</span>
+                                </button>
+
+                                <button type="button" onclick="selectPosition('Executive / C-Level / Owner', this)" 
+                                    class="option-card border border-slate-200 bg-white p-3 rounded-xl text-left hover:border-peak-sky transition-all flex items-center space-x-3 cursor-pointer">
+                                    <div class="w-8 h-8 rounded-lg bg-blue-50 text-peak-navy flex items-center justify-center shrink-0">
+                                        <i data-lucide="briefcase" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="text-xs font-medium text-slate-700">Executive / เจ้าของกิจการ</span>
+                                </button>
+
+                                <button type="button" onclick="selectPosition('Finance & Accounting', this)" 
+                                    class="option-card border border-slate-200 bg-white p-3 rounded-xl text-left hover:border-peak-sky transition-all flex items-center space-x-3 cursor-pointer">
+                                    <div class="w-8 h-8 rounded-lg bg-blue-50 text-peak-navy flex items-center justify-center shrink-0">
+                                        <i data-lucide="calculator" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="text-xs font-medium text-slate-700">Finance & Accounting</span>
+                                </button>
+
+                                <button type="button" onclick="selectPosition('Other', this)" 
+                                    class="option-card sm:col-span-2 border border-slate-200 bg-white p-3 rounded-xl text-left hover:border-peak-sky transition-all flex items-center space-x-3 cursor-pointer">
+                                    <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                                        <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="text-xs font-medium text-slate-700">อื่นๆ (ระบุตำแหน่งงาน)</span>
+                                </button>
+                            </div>
+
+                            <div id="customPositionContainer" class="mt-2.5 hidden">
+                                <input type="text" id="customPositionInput" placeholder="ระบุตำแหน่งงานของคุณ..." 
+                                    class="w-full px-4 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-peak-sky outline-none bg-white">
+                            </div>
+                        </div>
+
+                        <!-- PEAK Interest Options -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                ความสนใจในระบบ PEAK <span class="text-red-500">*</span>
+                            </label>
+                            <input type="hidden" id="selectedInterest" required>
+
+                            <div class="space-y-2" id="interestGroup">
+                                <button type="button" onclick="selectInterest('สนใจมาก / ต้องการให้ติดต่อเสนอราคา', this)" 
+                                    class="option-card w-full border border-slate-200 bg-white p-3 rounded-xl text-left hover:border-peak-sky transition-all flex items-center justify-between cursor-pointer">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="text-lg">🔥</span>
+                                        <div>
+                                            <div class="text-xs font-bold text-slate-800">สนใจมาก / ต้องการให้ติดต่อเสนอราคา</div>
+                                            <div class="text-[11px] text-slate-500">ต้องการนำระบบไปประยุกต์ใช้ในองค์กรโดยเร็ว</div>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-slate-300 check-icon"></i>
+                                </button>
+
+                                <button type="button" onclick="selectInterest('สนใจปรึกษาการใช้งานเบื้องต้น', this)" 
+                                    class="option-card w-full border border-slate-200 bg-white p-3 rounded-xl text-left hover:border-peak-sky transition-all flex items-center justify-between cursor-pointer">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="text-lg">💬</span>
+                                        <div>
+                                            <div class="text-xs font-bold text-slate-800">สนใจปรึกษาการใช้งาน / ทดลองใช้เบื้องต้น</div>
+                                            <div class="text-[11px] text-slate-500">อยากสอบถามฟีเจอร์และทดลอง Demo ระบบ</div>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-slate-300 check-icon"></i>
+                                </button>
+
+                                <button type="button" onclick="selectInterest('ขอรับเอกสารแนะนำฟังก์ชันเพิ่มเติม', this)" 
+                                    class="option-card w-full border border-slate-200 bg-white p-3 rounded-xl text-left hover:border-peak-sky transition-all flex items-center justify-between cursor-pointer">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="text-lg">📚</span>
+                                        <div>
+                                            <div class="text-xs font-bold text-slate-800">ขอรับเอกสารแนะนำฟังก์ชันเพิ่มเติม</div>
+                                            <div class="text-[11px] text-slate-500">ขอรับเอกสารและแคตตาล็อกแนะนำฟังก์ชัน</div>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-slate-300 check-icon"></i>
+                                </button>
+
+                                <button type="button" onclick="selectInterest('ยังไม่แน่ใจ / มาเดินดูงาน', this)" 
+                                    class="option-card w-full border border-slate-200 bg-white p-3 rounded-xl text-left hover:border-peak-sky transition-all flex items-center justify-between cursor-pointer">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="text-lg">🚶</span>
+                                        <div>
+                                            <div class="text-xs font-bold text-slate-800">ยังไม่แน่ใจ / มาเดินชมงาน</div>
+                                            <div class="text-[11px] text-slate-500">เยี่ยมชมบูธและรับของรางวัลกิจกรรม</div>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-slate-300 check-icon"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Legal PDPA Consent Box -->
+                        <div class="pt-2">
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                                ข้อกำหนดการคุ้มครองข้อมูลส่วนบุคคล (PDPA)
+                            </label>
+                            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-600 max-h-40 overflow-y-auto pdpa-scrollbar space-y-2 leading-relaxed">
+                                <p>เพื่อให้เป็นไปตามข้อกำหนดทางกฎหมายที่เกี่ยวข้องกับการคุ้มครองข้อมูลส่วนบุคคล บริษัท พี ยู ยู เอ็น อินเทลลิเจนท์ จำกัด (บริษัท) จึงขอให้ท่านให้ความยินยอมในการเก็บรวบรวม ใช้ และเปิดเผยข้อมูลตามเนื้อหาที่แจ้งแก่ท่านดังต่อไปนี้</p>
+                                <p><strong>ข้อมูลที่ทางบริษัทจะเก็บรวบรวม ใช้ และเปิดเผยเผื่อวัตถุประสงค์ ได้แก่</strong></p>
+                                
+                                <ol class="space-y-1 font-medium text-slate-700 pl-1">
+                                    <li>1. First Name (ชื่อ)</li>
+                                    <li>2. Last Name (นามสกุล)</li>
+                                    <li>3. Email Address (อีเมล)</li>
+                                    <li>4. Phone No. (หมายเลขโทรศัพท์) หรือ Mobile Phone No.(หมายเลขโทรศัพท์มือถือ)</li>
+                                </ol>
+
+                                <p class="pt-1"><strong>วัตถุประสงค์ของการให้ความยินยอม</strong></p>
+                                <ul class="list-disc pl-5">
+                                    <li>เพื่อการเสนอผลิตภัณฑ์ บริการ และสิทธิประโยชน์ที่เหมาะสมแก่ท่าน</li>
+                                </ul>
+                                <p><strong>ผู้ที่จะเข้าถึงข้อมูลของท่านตามความยินยอมนี้ ได้แก่</strong></p>
+                                <ul class="list-disc pl-5">
+                                    <li>บริษัท และ พนักงานของบริษัทที่ทำหน้าที่อันเกี่ยวข้องกับการนำเสนอผลิตภัณฑ์และบริการ</li>
+                                </ul>
+                                <p class="text-slate-500 italic">กรณีที่ท่านไม่ให้ความยินยอม หรือได้ขอใช้สิทธิ์เพิกถอนความยินยอมในภายหลัง ท่านจะพลาดโอกาสในการได้รับข้อเสนอเกี่ยวกับ ผลิตภัณฑ์ บริการ และสิทธิประโยชน์ที่เหมาะสมกับความต้องการของท่านโดยเฉพาะจากบริษัท</p>
+                                <p>ทั้งนี้การให้ความยินยอมแก่บริษัทในครั้งนี้ จะไม่ส่งผลกระทบ หรือเป็นการแก้ไขความยินยอมใดๆ ที่ท่านให้ไว้แก่บริษัทก่อนหน้า</p>
+                                <p>ความยินยอมนี้ท่านสามารถอ่านข้อกำหนดเพิ่มเติมเกี่ยวกับการคุ้มครองข้อมูลส่วนบุคคลของท่าน หรือการขอใช้สิทธิ์ในฐานะเจ้าของข้อมูลส่วนบุคคลได้ที่ <a href="mailto:dpo@peakengine.com" class="text-peak-sky underline font-medium">dpo@peakengine.com</a></p>
+                                <p class="font-medium text-slate-700">การกด "ยินยอม" จะเป็นการยินยอมให้บริษัท นำข้อมูลของท่านตามที่ระบุไว้ในความยินยอมนี้ ไปใช้ตามวัตถุประสงค์ตามที่ได้กำหนดไว้ความยินยอมนี้</p>
+                            </div>
+                        </div>
+
+                        <!-- Checkbox -->
+                        <div class="flex items-start space-x-3 pt-1">
+                            <input type="checkbox" id="pdpaConsent" required
+                                class="mt-1 w-4 h-4 text-peak-orange border-slate-300 rounded focus:ring-peak-orange cursor-pointer">
+                            <label for="pdpaConsent" class="text-xs text-slate-700 font-medium cursor-pointer select-none">
+                                ข้าพเจ้าได้อ่านและ <span class="text-peak-navy font-bold">"ยินยอม"</span> ให้บริษัท พี ยู ยู เอ็น อินเทลลิเจนท์ จำกัด เก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลตามรายละเอียดที่ระบุไว้ข้างต้น <span class="text-red-500">*</span>
+                            </label>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="pt-2">
+                            <button type="submit" 
+                                class="w-full bg-gradient-to-r from-peak-orange to-amber-500 hover:from-amber-600 hover:to-peak-orange text-white text-base font-bold py-3.5 px-6 rounded-xl shadow-md transition-all duration-200 flex items-center justify-center space-x-2 cursor-pointer active:scale-[0.99]">
+                                <i data-lucide="send" class="w-4 h-4"></i>
+                                <span>ยืนยันการลงทะเบียน & ลุ้นรางวัล</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Success Modal -->
+        <div id="successModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center">
+                <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                    <i data-lucide="check-circle" class="w-8 h-8"></i>
+                </div>
+                <h2 class="text-xl font-bold text-slate-800 mb-2">ลงทะเบียนเรียบร้อยแล้ว!</h2>
+                <p class="text-slate-600 text-xs mb-6">
+                    ขอบคุณที่ร่วมลงทะเบียนกับบริษัท พี ยู ยู เอ็น อินเทลลิเจนท์ จำกัด <br>
+                    รายชื่อของท่านได้รับการบันทึกในระบบเพื่อสุ่มรางวัล Starbucks Card แล้ว
+                </p>
+                <button onclick="closeSuccessModal()" 
+                    class="w-full bg-peak-navy hover:bg-peak-blue text-white font-semibold py-3 px-6 rounded-xl text-sm transition-colors cursor-pointer">
+                    เสร็จสิ้น / ลงทะเบียนคนถัดไป
+                </button>
+            </div>
+        </div>
+
+        <!-- Admin Login Password Modal -->
+        <div id="adminLoginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center">
+                <div class="w-12 h-12 bg-blue-50 text-peak-blue rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800 mb-1">สำหรับทีมงาน PEAK</h3>
+                <p class="text-xs text-slate-500 mb-4">กรุณากรอกรหัสผ่านเพื่อเข้าสู่ระบบ Admin & สุ่มรางวัล</p>
+                
+                <input type="password" id="adminPasswordInput" placeholder="กรอกรหัสผ่าน..." 
+                    class="w-full px-4 py-2.5 text-center text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-peak-sky outline-none mb-4">
+                
+                <div class="flex gap-2">
+                    <button onclick="closeAdminLoginModal()" class="w-1/2 bg-slate-100 text-slate-600 py-2.5 rounded-xl text-xs font-semibold">ยกเลิก</button>
+                    <button onclick="checkAdminPassword()" class="w-1/2 bg-peak-blue text-white py-2.5 rounded-xl text-xs font-semibold">เข้าสู่ระบบ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PAGE 2: LUCKY DRAW VIEW (PEAK ADMIN ONLY) ================= -->
+        <section id="page-luckydraw" class="hidden transition-all duration-300">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <div class="text-center space-y-2">
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-peak-blue flex items-center justify-center gap-2">
+                        <i data-lucide="gift" class="w-7 h-7 text-peak-orange"></i>
+                        วงล้อสุ่มผู้โชคดี Starbucks Card
+                    </h2>
+                    <p class="text-slate-600 text-xs sm:text-sm">
+                        สุ่มรางวัลสำหรับผู้ลงทะเบียนที่บูธ HR Hero Summit (รวม 3 รางวัล)
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    <div class="lg:col-span-7 glass-card p-6 rounded-3xl shadow-md flex flex-col items-center justify-center">
+                        <div class="relative w-full max-w-[320px] aspect-square flex items-center justify-center my-2">
+                            <div class="absolute -top-3 z-20 text-peak-orange filter drop-shadow-md">
+                                <i data-lucide="triangle" class="w-8 h-8 fill-peak-orange rotate-180"></i>
+                            </div>
+                            <canvas id="wheelCanvas" width="320" height="320" class="rounded-full shadow-inner bg-slate-100"></canvas>
+                        </div>
+
+                        <div class="w-full mt-4 flex flex-col gap-2">
+                            <button id="spinBtn" onclick="spinWheel()" 
+                                class="w-full bg-gradient-to-r from-peak-orange to-peak-yellow hover:opacity-95 text-white font-extrabold text-lg py-3.5 rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer">
+                                <i data-lucide="sparkles" class="w-5 h-5"></i>
+                                <span>หมุนสุ่มรางวัล!</span>
+                            </button>
+                            <p id="spinMessage" class="text-center text-xs text-slate-500 min-h-[1.25rem]"></p>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-5 space-y-4">
+                        <div class="glass-card p-5 rounded-3xl shadow-md border-t-4 border-peak-orange">
+                            <div class="flex items-center justify-between mb-3 border-b pb-2">
+                                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                    <i data-lucide="trophy" class="w-4 h-4 text-amber-500"></i>
+                                    รายชื่อผู้ได้รับรางวัล
+                                </h3>
+                                <span id="winnerCountBadge" class="bg-amber-100 text-amber-800 text-[11px] px-2.5 py-0.5 rounded-full font-bold">
+                                    0 / 3
+                                </span>
+                            </div>
+
+                            <div id="winnersContainer" class="space-y-2">
+                                <div class="text-center py-6 text-slate-400 text-xs italic">
+                                    ยังไม่มีผู้ได้รับรางวัล
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-peak-blue text-white p-4 rounded-2xl flex items-center justify-between shadow">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-white/10 p-2 rounded-xl">
+                                    <i data-lucide="users" class="w-5 h-5 text-peak-sky"></i>
+                                </div>
+                                <div>
+                                    <div class="text-[11px] text-slate-300">จำนวนผู้มีสิทธิ์สุ่ม</div>
+                                    <div id="eligibleCount" class="text-lg font-bold">0 คน</div>
+                                </div>
+                            </div>
+                            <button onclick="updateLuckyDrawData()" class="text-xs text-peak-sky hover:underline flex items-center gap-1">
+                                <i data-lucide="refresh-cw" class="w-3 h-3"></i> รีเฟรช
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 3: ADMIN & LOG MANAGEMENT ================= -->
+        <section id="page-admin" class="hidden transition-all duration-300">
+            <div class="space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="database" class="w-6 h-6 text-peak-navy"></i>
+                            ระบบจัดการข้อมูล Log ผู้ลงทะเบียน
+                        </h2>
+                        <p class="text-slate-500 text-xs">
+                            บริษัท พี ยู ยู เอ็น อินเทลลิเจนท์ จำกัด | บูธ HR Hero Summit
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="exportToExcel()" 
+                            class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow transition-all flex items-center space-x-1.5 cursor-pointer">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                            <span>Export Excel (.xlsx)</span>
+                        </button>
+                        <button onclick="confirmClearData()" 
+                            class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow transition-all flex items-center space-x-1.5 cursor-pointer">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            <span>ล้างข้อมูล Log</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                        <div class="p-2.5 bg-blue-50 text-peak-blue rounded-xl">
+                            <i data-lucide="users" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-slate-500 font-medium">ผู้ลงทะเบียนทั้งหมด</div>
+                            <div id="statTotal" class="text-xl font-bold text-slate-800">0</div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                        <div class="p-2.5 bg-green-50 text-green-600 rounded-xl">
+                            <i data-lucide="shield-check" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-slate-500 font-medium">ยินยอม PDPA</div>
+                            <div id="statPDPA" class="text-xl font-bold text-slate-800">0</div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                        <div class="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+                            <i data-lucide="gift" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-slate-500 font-medium">ผู้ได้รับรางวัล Starbucks</div>
+                            <div id="statWinners" class="text-xl font-bold text-slate-800">0 / 3</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-3 rounded-2xl shadow-sm">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                        </span>
+                        <input type="text" id="searchInput" oninput="renderAdminTable()" placeholder="ค้นหาชื่อ, ตำแหน่ง, อีเมล หรือเบอร์โทร..."
+                            class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:ring-2 focus:ring-peak-sky bg-white">
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider">
+                                    <th class="py-3 px-4">#</th>
+                                    <th class="py-3 px-4">วัน-เวลา</th>
+                                    <th class="py-3 px-4">ชื่อ - นามสกุล</th>
+                                    <th class="py-3 px-4">ตำแหน่งงาน</th>
+                                    <th class="py-3 px-4">ความสนใจ PEAK</th>
+                                    <th class="py-3 px-4">อีเมล / เบอร์โทร</th>
+                                    <th class="py-3 px-4 text-center">PDPA</th>
+                                    <th class="py-3 px-4 text-center">รางวัล</th>
+                                    <th class="py-3 px-4 text-center">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminTableBody" class="divide-y divide-slate-100 text-slate-700">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="emptyTableNotice" class="text-center py-8 text-slate-400 text-xs hidden">
+                        ยังไม่มีข้อมูลการลงทะเบียนในระบบ
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 text-[11px] py-4 px-6 border-t border-slate-800 text-center">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div>
+                © 2026 บริษัท พี ยู ยู เอ็น อินเทลลิเจนท์ จำกัด (PUUN Intelligent Co., Ltd.) - HR Hero Summit
+            </div>
+            <div class="flex items-center space-x-3">
+                <span>DPO: dpo@peakengine.com</span>
+                <span class="text-slate-700">|</span>
+                <a href="https://www.hrherosummit.com/" target="_blank" class="text-peak-sky hover:underline">HR Hero Summit</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const STORAGE_KEY = 'hr_hero_summit_leads_2026';
+        const ADMIN_PIN = 'peak123';
+        let leads = [];
+        let isAdminLoggedIn = false;
+        let isSpinning = false;
+        let wheelAngle = 0;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadLeadsFromStorage();
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('admin') === 'true') {
+                promptAdminLogin();
+            }
+        });
+
+        function promptAdminLogin() {
+            if (isAdminLoggedIn) {
+                switchTab('luckydraw');
+                return;
+            }
+            document.getElementById('adminLoginModal').classList.remove('hidden');
+        }
+
+        function closeAdminLoginModal() {
+            document.getElementById('adminLoginModal').classList.add('hidden');
+        }
+
+        function checkAdminPassword() {
+            const inputPass = document.getElementById('adminPasswordInput').value;
+            if (inputPass === ADMIN_PIN) {
+                isAdminLoggedIn = true;
+                closeAdminLoginModal();
+                document.getElementById('adminNav').classList.remove('hidden');
+                document.getElementById('adminLoginBtn').classList.add('hidden');
+                switchTab('luckydraw');
+            } else {
+                alert('รหัสผ่านไม่ถูกต้อง');
+            }
+        }
+
+        function resetToCustomerView() {
+            switchTab('register');
+        }
+
+        function selectPosition(value, element) {
+            document.querySelectorAll('#positionGroup .option-card').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+
+            const hiddenInput = document.getElementById('selectedPosition');
+            const customContainer = document.getElementById('customPositionContainer');
+            const customInput = document.getElementById('customPositionInput');
+
+            if (value === 'Other') {
+                hiddenInput.value = 'Other';
+                customContainer.classList.remove('hidden');
+                customInput.required = true;
+            } else {
+                hiddenInput.value = value;
+                customContainer.classList.add('hidden');
+                customInput.required = false;
+                customInput.value = '';
+            }
+        }
+
+        function selectInterest(value, element) {
+            document.querySelectorAll('#interestGroup .option-card').forEach(btn => {
+                btn.classList.remove('active');
+                const checkIcon = btn.querySelector('.check-icon');
+                if (checkIcon) {
+                    checkIcon.classList.remove('text-peak-sky');
+                    checkIcon.classList.add('text-slate-300');
+                }
+            });
+
+            element.classList.add('active');
+            const checkIcon = element.querySelector('.check-icon');
+            if (checkIcon) {
+                checkIcon.classList.remove('text-slate-300');
+                checkIcon.classList.add('text-peak-sky');
+            }
+
+            document.getElementById('selectedInterest').value = value;
+        }
+
+        function loadLeadsFromStorage() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            if (data) {
+                try { leads = JSON.parse(data); } catch (e) { leads = []; }
+            } else {
+                leads = [];
+                saveLeadsToStorage();
+            }
+            updateLuckyDrawData();
+            renderAdminTable();
+        }
+
+        function saveLeadsToStorage() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
+        }
+
+        function switchTab(tab) {
+            document.getElementById('page-register').classList.add('hidden');
+            document.getElementById('page-luckydraw').classList.add('hidden');
+            document.getElementById('page-admin').classList.add('hidden');
+
+            ['register', 'luckydraw', 'admin'].forEach(t => {
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (navBtn) {
+                    navBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center space-x-1 text-slate-600 hover:bg-slate-100';
+                }
+            });
+
+            const activeNav = document.getElementById(`nav-${tab}`);
+            if (activeNav) {
+                activeNav.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center space-x-1 bg-peak-blue text-white';
+            }
+
+            if (tab === 'register') {
+                document.getElementById('page-register').classList.remove('hidden');
+            } else if (tab === 'luckydraw') {
+                document.getElementById('page-luckydraw').classList.remove('hidden');
+                updateLuckyDrawData();
+                drawWheel();
+            } else if (tab === 'admin') {
+                document.getElementById('page-admin').classList.remove('hidden');
+                renderAdminTable();
+            }
+        }
+
+        function handleRegistration(event) {
+            event.preventDefault();
+
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            const selectedPos = document.getElementById('selectedPosition').value;
+            let finalPosition = selectedPos;
+            if (selectedPos === 'Other') {
+                const customPos = document.getElementById('customPositionInput').value.trim();
+                finalPosition = customPos ? `อื่นๆ: ${customPos}` : 'อื่นๆ';
+            }
+
+            const peakInterestVal = document.getElementById('selectedInterest').value;
+            const pdpaConsent = document.getElementById('pdpaConsent').checked;
+
+            if (!finalPosition) return alert('กรุณาเลือกตำแหน่งงาน');
+            if (!peakInterestVal) return alert('กรุณาเลือกระดับความสนใจในระบบ PEAK');
+            if (!pdpaConsent) return alert('กรุณากดยินยอมข้อกำหนด PDPA ก่อนทำการลงทะเบียน');
+
+            const newLead = {
+                id: Date.now().toString(),
+                firstName,
+                lastName,
+                email,
+                phone,
+                position: finalPosition,
+                peakInterest: peakInterestVal,
+                pdpaConsent,
+                timestamp: new Date().toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'medium' }),
+                isWinner: false,
+                winnerPrize: null
+            };
+
+            leads.unshift(newLead);
+            saveLeadsToStorage();
+
+            document.getElementById('leadForm').reset();
+            document.getElementById('selectedPosition').value = '';
+            document.getElementById('selectedInterest').value = '';
+            document.querySelectorAll('.option-card').forEach(b => b.classList.remove('active'));
+            document.getElementById('customPositionContainer').classList.add('hidden');
+
+            document.getElementById('successModal').classList.remove('hidden');
+
+            renderAdminTable();
+            updateLuckyDrawData();
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.add('hidden');
+        }
+
+        function updateLuckyDrawData() {
+            const eligible = leads.filter(l => !l.isWinner);
+            const winners = leads.filter(l => l.isWinner);
+
+            document.getElementById('eligibleCount').innerText = `${eligible.length} คน`;
+            document.getElementById('winnerCountBadge').innerText = `${winners.length} / 3`;
+
+            const winnersContainer = document.getElementById('winnersContainer');
+            if (winners.length === 0) {
+                winnersContainer.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs italic">ยังไม่มีผู้ได้รับรางวัล</div>`;
+            } else {
+                winnersContainer.innerHTML = winners.map((w, index) => `
+                    <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-2.5 rounded-xl flex items-center justify-between shadow-sm">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="w-6 h-6 bg-peak-orange text-white font-bold rounded-md flex items-center justify-center text-xs">
+                                #${index + 1}
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-xs">${w.firstName} ${w.lastName}</div>
+                                <div class="text-[10px] text-slate-500">${w.position}</div>
+                            </div>
+                        </div>
+                        <span class="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-semibold">
+                            Starbucks Card
+                        </span>
+                    </div>
+                `).join('');
+            }
+
+            drawWheel();
+        }
+
+        function drawWheel() {
+            const canvas = document.getElementById('wheelCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = width / 2 - 10;
+
+            ctx.clearRect(0, 0, width, height);
+            const eligibleLeads = leads.filter(l => !l.isWinner);
+            
+            if (eligibleLeads.length === 0) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.fillStyle = '#CBD5E1';
+                ctx.fill();
+                ctx.fillStyle = '#475569';
+                ctx.font = 'bold 12px "Noto Sans Thai"';
+                ctx.textAlign = 'center';
+                ctx.fillText('ไม่มีรายชื่อสำหรับสุ่ม', centerX, centerY);
+                return;
+            }
+
+            const numSlices = eligibleLeads.length;
+            const sliceAngle = (2 * Math.PI) / numSlices;
+            const colors = ['#0B2545', '#134074', '#2B88D8', '#FF6B35', '#FFC857', '#334155'];
+
+            for (let i = 0; i < numSlices; i++) {
+                const startAngle = i * sliceAngle + wheelAngle;
+                const endAngle = startAngle + sliceAngle;
+
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fill();
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + sliceAngle / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 11px "Noto Sans Thai"';
+                
+                const displayName = `${eligibleLeads[i].firstName} ${eligibleLeads[i].lastName.charAt(0)}.`;
+                ctx.fillText(displayName, radius - 15, 4);
+                ctx.restore();
+            }
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 22, 0, 2 * Math.PI);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fill();
+            ctx.fillStyle = '#0B2545';
+            ctx.font = 'bold 9px "Noto Sans Thai"';
+            ctx.textAlign = 'center';
+            ctx.fillText('PEAK', centerX, centerY + 3);
+        }
+
+        function spinWheel() {
+            if (isSpinning) return;
+            const eligible = leads.filter(l => !l.isWinner);
+            const winners = leads.filter(l => l.isWinner);
+
+            if (winners.length >= 3) return alert('ครบกำหนด 3 รางวัลแล้ว!');
+            if (eligible.length === 0) return alert('ไม่มีรายชื่อผู้มีสิทธิ์ลงทะเบียนในระบบ');
+
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+
+            const winnerIndex = Math.floor(Math.random() * eligible.length);
+            const targetRotation = (360 * 5) + (360 - (winnerIndex * (360 / eligible.length))) - (360 / eligible.length / 2);
+            
+            const canvas = document.getElementById('wheelCanvas');
+            canvas.style.transform = `rotate(${targetRotation}deg)`;
+
+            setTimeout(() => {
+                const winningLead = eligible[winnerIndex];
+                const leadInMaster = leads.find(l => l.id === winningLead.id);
+                if (leadInMaster) {
+                    leadInMaster.isWinner = true;
+                    leadInMaster.winnerPrize = 'Starbucks Card';
+                    saveLeadsToStorage();
+                }
+
+                canvas.style.transition = 'none';
+                canvas.style.transform = 'rotate(0deg)';
+                setTimeout(() => canvas.style.transition = 'transform 4s cubic-bezier(0.15, 0.99, 0.18, 0.99)', 50);
+
+                isSpinning = false;
+                document.getElementById('spinBtn').disabled = false;
+
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                updateLuckyDrawData();
+                renderAdminTable();
+
+                alert(`🎉 ยินดีด้วย! ผู้ได้รับรางวัลบัตร Starbucks ได้แก่:\n\nคุณ ${winningLead.firstName} ${winningLead.lastName}\nตำแหน่ง: ${winningLead.position}\nอีเมล: ${winningLead.email}`);
+            }, 4000);
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('adminTableBody');
+            const searchVal = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            const emptyNotice = document.getElementById('emptyTableNotice');
+
+            if (!tbody) return;
+
+            const filteredLeads = leads.filter(l => 
+                l.firstName.toLowerCase().includes(searchVal) ||
+                l.lastName.toLowerCase().includes(searchVal) ||
+                (l.position && l.position.toLowerCase().includes(searchVal)) ||
+                l.email.toLowerCase().includes(searchVal) ||
+                l.phone.includes(searchVal)
+            );
+
+            document.getElementById('statTotal').innerText = leads.length;
+            document.getElementById('statPDPA').innerText = leads.filter(l => l.pdpaConsent).length;
+            document.getElementById('statWinners').innerText = `${leads.filter(l => l.isWinner).length} / 3`;
+
+            if (filteredLeads.length === 0) {
+                tbody.innerHTML = '';
+                emptyNotice.classList.remove('hidden');
+                return;
+            }
+
+            emptyNotice.classList.add('hidden');
+
+            tbody.innerHTML = filteredLeads.map((lead, index) => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="py-2.5 px-4 font-mono text-[11px] text-slate-400">${index + 1}</td>
+                    <td class="py-2.5 px-4 text-[11px] font-mono text-slate-500">${lead.timestamp}</td>
+                    <td class="py-2.5 px-4 font-medium text-slate-900">${lead.firstName} ${lead.lastName}</td>
+                    <td class="py-2.5 px-4 text-slate-700">${lead.position || '-'}</td>
+                    <td class="py-2.5 px-4 text-slate-600">${lead.peakInterest || '-'}</td>
+                    <td class="py-2.5 px-4 font-mono text-[11px] text-slate-600">
+                        <div>${lead.email}</div>
+                        <div class="text-slate-400">${lead.phone}</div>
+                    </td>
+                    <td class="py-2.5 px-4 text-center">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-800">
+                            ยินยอม
+                        </span>
+                    </td>
+                    <td class="py-2.5 px-4 text-center">
+                        ${lead.isWinner ? 
+                            `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                                ☕ ได้รับ Starbucks
+                             </span>` : 
+                            `<span class="text-slate-400">-</span>`
+                        }
+                    </td>
+                    <td class="py-2.5 px-4 text-center">
+                        <button onclick="deleteSingleLead('${lead.id}')" title="ลบข้อมูล" class="text-slate-400 hover:text-red-500 transition-colors p-1">
+                            <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        function deleteSingleLead(id) {
+            if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?')) {
+                leads = leads.filter(l => l.id !== id);
+                saveLeadsToStorage();
+                renderAdminTable();
+                updateLuckyDrawData();
+            }
+        }
+
+        function confirmClearData() {
+            if (confirm('⚠️ เตือน: คุณต้องการล้างข้อมูล Log ทั้งหมดในระบบใช่หรือไม่?')) {
+                leads = [];
+                saveLeadsToStorage();
+                renderAdminTable();
+                updateLuckyDrawData();
+            }
+        }
+
+        function exportToExcel() {
+            if (leads.length === 0) return alert('ไม่มีข้อมูล Log ในระบบเพื่อส่งออก');
+
+            const excelData = leads.map((l, index) => ({
+                "ลำดับ (#)": index + 1,
+                "วัน-เวลา บันทึก Log": l.timestamp,
+                "ชื่อ (First Name)": l.firstName,
+                "นามสกุล (Last Name)": l.lastName,
+                "ตำแหน่งงาน (Position)": l.position || '-',
+                "ความสนใจใน PEAK": l.peakInterest || '-',
+                "อีเมล (Email)": l.email,
+                "เบอร์โทรศัพท์ (Phone)": l.phone,
+                "ความยินยอม PDPA": l.pdpaConsent ? 'ยินยอม' : 'ไม่ยินยอม',
+                "สถานะการสุ่มรางวัล": l.isWinner ? 'ได้รับรางวัล Starbucks Card' : 'ไม่ได้รับรางวัล'
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            worksheet['!cols'] = [
+                { wch: 10 }, { wch: 22 }, { wch: 18 }, { wch: 18 }, 
+                { wch: 30 }, { wch: 35 }, { wch: 28 }, { wch: 16 }, 
+                { wch: 16 }, { wch: 30 }
+            ];
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "HR_Hero_Summit_Leads");
+
+            const fileName = `HR_Hero_Summit_Leads_PUUN_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(workbook, fileName);
+        }
+    </script>
+</body>
+</html>
